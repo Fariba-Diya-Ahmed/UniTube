@@ -22,7 +22,6 @@ The main objectives of UniTube are:
 - Reduce time spent searching for learning resources
 - Provide course-wise, organized video materials
 - Allow students to personalize their learning dashboard
-- Track learning progress
 - Allow students to take notes while studying
 - Provide AI-based learning assistance in future versions
 	
@@ -35,7 +34,6 @@ The main objectives of UniTube are:
 		- Remove courses
 		- View course materials
 		- Watch videos inside UniTube
-		- Track video completion
 		- Save personal notes
 		- Use dark/light mode
 		
@@ -58,7 +56,6 @@ A registered student can:
  - Access personalized dashboard
  - Manage courses
  - Watch videos
- - Track progress
  - Write notes
  
 ## Administrator
@@ -164,7 +161,6 @@ System shall provide a personalized dashboard showing:
 
 -   Enrolled courses
 -   Available video playlists
--   Progress overview
 -   Notes access
 
 # 6. Non-Functional Requirements
@@ -223,7 +219,7 @@ Database:
               Student
                  |
                  |
-          Frontend (HTML/CSS/JS)
+          Frontend (React)
                  |
                  |
           FastAPI Backend
