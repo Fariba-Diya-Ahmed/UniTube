@@ -4,15 +4,13 @@ from sqlalchemy.orm import Session
 
 from passlib.context import CryptContext
 
-
 from models import User
 from schemas import (
     UserCreate,
     ForgotPassword,
-    ResetPassword
+    ResetPassword,
+    UpdateProfile
 )
-
-from database import SessionLocal
 
 from auth_utils import create_access_token
 
@@ -31,7 +29,6 @@ pwd_context = CryptContext(
 )
 
 
-
 # =====================
 # REGISTER
 # =====================
@@ -45,21 +42,33 @@ def register_user(
 
 ):
 
-    existing = db.query(User).filter(
+    # Check email
+    existing_email = db.query(User).filter(
         User.email == user.email
     ).first()
 
-    if existing:
+    if existing_email:
 
         raise HTTPException(
             status_code=400,
             detail="Email already registered"
         )
 
+    # Check username
+    existing_username = db.query(User).filter(
+        User.username == user.username
+    ).first()
+
+    if existing_username:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Username already taken"
+        )
+
     hashed_password = pwd_context.hash(
         user.password
     )
-
 
     new_user = User(
 
@@ -74,24 +83,21 @@ def register_user(
 
     )
 
-
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
     return {
 
-        "message":"Registration successful",
-        "user_id":new_user.user_id
+        "message": "Registration successful",
+        "user_id": new_user.user_id
 
     }
-
 
 
 # =====================
 # LOGIN
 # =====================
-
 
 @router.post("/login")
 def login_user(
@@ -102,11 +108,9 @@ def login_user(
 
 ):
 
-
     user = db.query(User).filter(
         User.email == form_data.username
     ).first()
-
 
     if not user:
 
@@ -115,10 +119,11 @@ def login_user(
             detail="Invalid email or password"
         )
 
-
     if not pwd_context.verify(
+
         form_data.password,
         user.password_hash
+
     ):
 
         raise HTTPException(
@@ -126,33 +131,33 @@ def login_user(
             detail="Invalid email or password"
         )
 
-
     token = create_access_token(
+
         {
+
             "user_id": user.user_id,
             "email": user.email
-        }
-    )
 
+        }
+
+    )
 
     return {
 
-        "access_token":token,
-        "token_type":"bearer"
+        "access_token": token,
+        "token_type": "bearer"
 
     }
-
 
 
 # =====================
 # CURRENT USER
 # =====================
 
-
 @router.get("/me")
 def get_me(
 
-    user = Depends(get_current_user)
+    user=Depends(get_current_user)
 
 ):
 
@@ -161,9 +166,60 @@ def get_me(
         "user_id": user.user_id,
         "username": user.username,
         "email": user.email,
+        "phone_number": user.phone_number,
+        "institution": user.institution,
         "department": user.department,
         "batch": user.batch,
+        "year_semester": user.year_semester,
         "role": user.role
+
+    }
+
+
+# =====================
+# UPDATE PROFILE
+# =====================
+
+@router.put("/update-profile")
+def update_profile(
+
+    data: UpdateProfile,
+
+    db: Session = Depends(get_db),
+
+    user=Depends(get_current_user)
+
+):
+
+    existing = db.query(User).filter(
+
+        User.username == data.username,
+        User.user_id != user.user_id
+
+    ).first()
+
+    if existing:
+
+        raise HTTPException(
+
+            status_code=400,
+            detail="Username already taken"
+
+        )
+
+    user.username = data.username
+    user.phone_number = data.phone_number
+    user.institution = data.institution
+    user.department = data.department
+    user.batch = data.batch
+    user.year_semester = data.year_semester
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+
+        "message": "Profile updated successfully"
 
     }
 
@@ -171,7 +227,6 @@ def get_me(
 # =====================
 # FORGOT PASSWORD
 # =====================
-
 
 @router.post("/forgot-password")
 def forgot_password(
@@ -183,30 +238,30 @@ def forgot_password(
 ):
 
     user = db.query(User).filter(
-        User.email == data.email
-    ).first()
 
+        User.email == data.email
+
+    ).first()
 
     if not user:
 
         raise HTTPException(
+
             status_code=404,
             detail="User not found"
+
         )
 
     return {
 
-        "message":
-        "Email verified"
+        "message": "Email verified"
 
     }
-
 
 
 # =====================
 # RESET PASSWORD
 # =====================
-
 
 @router.post("/reset-password")
 def reset_password(
@@ -218,25 +273,30 @@ def reset_password(
 ):
 
     user = db.query(User).filter(
-        User.email == data.email
-    ).first()
 
+        User.email == data.email
+
+    ).first()
 
     if not user:
 
         raise HTTPException(
+
             status_code=404,
             detail="User not found"
+
         )
 
     user.password_hash = pwd_context.hash(
+
         data.new_password
+
     )
 
     db.commit()
 
     return {
 
-        "message":
-        "Password reset successful"
+        "message": "Password reset successful"
+
     }
