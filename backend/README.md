@@ -4,7 +4,7 @@ Backend API for **UniTube**, an educational platform where students can:
 
 - Register and log in securely
 - Select courses
-- Watch curated YouTube playlists
+- Watch YouTube playlists
 - Take personal notes
 - Manage courses through an admin panel
 
@@ -27,5 +27,6 @@ backend/
 │   └── notes.py       # Notes APIs
 │
 ├── requirements.txt
+├── .env
 └── .gitignore
 ```
