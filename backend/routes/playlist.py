@@ -20,13 +20,12 @@ router = APIRouter(
 # ADMIN ADD PLAYLIST
 # =====================
 
-
 @router.post("/add")
 def add_playlist(
 
     playlist: PlaylistCreate,
     db: Session = Depends(get_db),
-    admin = Depends(admin_required)
+    admin=Depends(admin_required)
 
 ):
 
@@ -40,7 +39,6 @@ def add_playlist(
             status_code=404,
             detail="Course not found"
         )
-
 
     new_playlist = Playlist(
 
@@ -56,32 +54,38 @@ def add_playlist(
     db.commit()
     db.refresh(new_playlist)
 
-
     return {
 
-        "message":"Playlist added",
-
-        "playlist_id":
-        new_playlist.playlist_id
+        "message": "Playlist added",
+        "playlist_id": new_playlist.playlist_id
 
     }
-
 
 
 # =====================
 # GET PLAYLIST BY COURSE
 # =====================
 
-
 @router.get("/{course_id}")
 def get_playlist(
 
-    course_id:int,
-    db:Session = Depends(get_db),
-    user = Depends(get_current_user)
+    course_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
 
 ):
 
+    # Check if course exists
+    course = db.query(Course).filter(
+        Course.course_id == course_id
+    ).first()
+
+    if course is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Course not found"
+        )
 
     playlists = db.query(Playlist).filter(
 
@@ -92,18 +96,16 @@ def get_playlist(
     return playlists
 
 
-
 # =====================
 # ADMIN DELETE PLAYLIST
 # =====================
 
-
 @router.delete("/{playlist_id}")
 def delete_playlist(
 
-    playlist_id:int,
-    db:Session = Depends(get_db),
-    admin = Depends(admin_required)
+    playlist_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(admin_required)
 
 ):
 
@@ -113,7 +115,6 @@ def delete_playlist(
 
     ).first()
 
-
     if playlist is None:
 
         raise HTTPException(
@@ -121,10 +122,11 @@ def delete_playlist(
             detail="Playlist not found"
         )
 
-
     db.delete(playlist)
     db.commit()
 
     return {
-        "message":"Playlist deleted"
+
+        "message": "Playlist deleted"
+
     }
